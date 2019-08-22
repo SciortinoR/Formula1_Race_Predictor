@@ -21,7 +21,19 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="dataset_formation.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="data_preprocessing.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="dnn_arch.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Formula1_Race_Predictor.py" />
+    <Compile Include="rnn_arch.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
