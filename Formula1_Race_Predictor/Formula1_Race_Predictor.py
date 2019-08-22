@@ -1,9 +1,6 @@
 import dataset_formation
 
-reg_df, reg_shuffled_df, race_df, race_shuffled_df = dataset_formation.create_datasets()
-
-print(reg_df)
-print(reg_shuffled_df)
+pre_race_df, pre_race_shuffled_df, post_race_df, post_race_shuffled_df = dataset_formation.create_datasets()
 
 # Preprocess data
 # Build neural net architectures
