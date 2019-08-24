@@ -7,7 +7,6 @@ pre_race_df = dataset_formation.create_datasets()
 data_preprocessing.preprocess_df(pre_race_df)
 print(pre_race_df)
 
-
 # Preprocess data
 # Build neural net architectures
 

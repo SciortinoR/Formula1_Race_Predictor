@@ -4,23 +4,25 @@ from datetime import datetime
 from sklearn import preprocessing
 
 def preprocess_df(df):
+    le = preprocessing.LabelEncoder()
+    
+    # Replace final position NaN with 100 before iterating
+    df['final_position'].fillna(100, inplace=True)
 
     # Iterate over columns removing/replacing NaN values, then normalize/scale
-    le = preprocessing.LabelEncoder()
     for col in df.columns:
-        if col == 'grid_position':
-            df[col].fillna(20, inplace=True)
-
-        # Every non-podium position is considered other (4)
-        elif col == 'final_position':
-            df[col].fillna(4, inplace=True)
-            df[col] = np.where(df[col] > 3, 4, df[col])
-
-        elif col == 'driver_nationality' or col == 'constructor_nationality':
+        if col == 'driver_nationality' or col == 'constructor_nationality':
             df[col] = le.fit_transform(df[col])
 
+        # Replace all empty constructor data with operations on driver data for that race
         elif col == 'constructor_season_points':
-            df.dropna(subset=['constructor_season_points', 'constructor_season_position', 'constructor_season_wins'], inplace=True)
+            df[col] = df[col].fillna(df.groupby(['year', 'round', 'constructor_id'])['driver_season_points'].transform('sum'))
+
+        elif col == 'constructor_season_position':
+            df[col] = df[col].fillna(df.groupby(['year', 'round', 'constructor_id'])['driver_season_position'].transform('min'))
+
+        elif col == 'constructor_season_wins':
+            df[col] = df[col].fillna(df.groupby(['year', 'round', 'constructor_id'])['driver_season_wins'].transform('sum'))
 
         elif col == 'q1_time':
             q1_ms = []
@@ -54,6 +56,10 @@ def preprocess_df(df):
             # Replace missing q2 and q3 times with previous quali time
             df['q2_time'].fillna(df['q1_time'], inplace=True)
             df['q3_time'].fillna(df['q2_time'], inplace=True)
+
+        # Every non-podium position is considered other (4)
+        elif col == 'final_position':
+            df[col] = np.where(df[col] > 3, 4, df[col])
 
         else:
             pass

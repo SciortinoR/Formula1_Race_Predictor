@@ -66,8 +66,11 @@ def create_datasets():
     full_df = pd.merge(full_df, c_standings, how='left')
     full_df = pd.merge(full_df, quali, how='left')
 
-    # Slice out bit of in-race data
-    pre_race_df = full_df.drop(full_df.columns[[5,6,7]], axis=1)
+    # Rearrange final pos column to end & make pre-race df
+    cols = list(full_df)
+    cols.insert(21, cols.pop(cols.index('final_position')))
+    full_df = full_df.loc[:, cols]
+    pre_race_df = full_df
 
     # Add the rest of in-race data to full dataset 
     full_df = pd.merge(full_df, lap_times, how='left')
