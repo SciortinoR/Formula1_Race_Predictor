@@ -76,5 +76,9 @@ def create_datasets():
     full_df = pd.merge(full_df, lap_times, how='left')
     full_df = pd.merge(full_df, pit_stops, how='left')
 
+    # Save the dataframes as .csv
+    full_df.to_csv("../Datasets/full_df.csv")
+    pre_race_df.to_csv("../Datasets/pre_race_df.csv")
+
     # Work only with pre-race data for now (Return full_df if wish to make predictions using post/in-race data)
     return pre_race_df
