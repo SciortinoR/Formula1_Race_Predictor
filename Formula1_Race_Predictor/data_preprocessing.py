@@ -1,18 +1,18 @@
-import numpy as np
 import time
+import random
+import numpy as np
 from datetime import datetime
 from sklearn import preprocessing
 
-def preprocess_df(df):
-    le = preprocessing.LabelEncoder()
-    
-    # Replace final position NaN with 100 before iterating
-    df['final_position'].fillna(100, inplace=True)
+encoder = preprocessing.LabelEncoder()
+scaler = preprocessing.MinMaxScaler(feature_range=(0,1))
 
-    # Iterate over columns removing/replacing NaN values, then normalize/scale
+def preprocess_df(df):
+
+    # Iterate over columns removing/replacing NaN values
     for col in df.columns:
         if col == 'driver_nationality' or col == 'constructor_nationality':
-            df[col] = le.fit_transform(df[col])
+            df[col] = encoder.fit_transform(df[col])
 
         # Replace all empty constructor data with operations on driver data for that race
         elif col == 'constructor_season_points':
@@ -47,40 +47,37 @@ def preprocess_df(df):
             df['q2_time'] = q2_ms
             df['q3_time'] = q3_ms
 
-            # Replace all empty quali times with average quali time from that samples grid position
+            # Replace all empty quali times with average quali time from that samples round & grid position
             df[col].replace({0 : np.nan}, inplace=True)
             df['q2_time'].replace({0 : np.nan}, inplace=True)
             df['q3_time'].replace({0 : np.nan}, inplace=True)
-            df[col] = df[col].fillna(df.groupby('grid_position')[col].transform('mean'))
+            df[col] = df[col].fillna(df.groupby(['grid_position', 'round'])[col].transform('mean'))
 
             # Replace missing q2 and q3 times with previous quali time
             df['q2_time'].fillna(df['q1_time'], inplace=True)
             df['q3_time'].fillna(df['q2_time'], inplace=True)
 
-        # Every non-podium position is considered other (4)
         elif col == 'final_position':
-            df[col] = np.where(df[col] > 3, 4, df[col])
+            # 34 will be the NaN class for final position)
+            df['final_position'].fillna(34, inplace=True)
 
         else:
             pass
 
-        # Standardize/scale everything except for target class
-        if col != 'final_position':
-            df[col] = preprocessing.scale(df[col].values)
-
-    # Final cleanup
+    # Final cleanup & return normalized values
     df.dropna(inplace=True)
-    df.reset_index(drop=True, inplace=True)
+    return scaler.fit_transform(df.values)
 
-def generate_rnn_data(df):
-    # NOT FINISHED 
-    # Sort then split then generate sequences
-    df.sort_values(['year', 'round', 'driver_id'], ascending=[True,True, True], inplace=True)
-    df.reset_index(drop=True, inplace=True)
-    return sequences, y
+def generate_dnn_data(values):
 
-def generate_dnn_data(df):
-    # NOT FINISHED
+    # Split intervals
+    train_interval = round(values.shape[0] * 0.7)
+    val_interval = round(values.shape[0] * 0.85)
+
     # Shuffle then split
-    df = df.sample(frac=1).reset_index(drop=True)
-    return x, y
+    random.shuffle(values)
+    train_x, train_y = values[:train_interval, :-1], values[:train_interval, -1]
+    val_x, val_y = values[train_interval:val_interval, :-1], values[train_interval:val_interval, -1]
+    test_x, test_y = values[val_interval:, :-1], values[val_interval:, -1]
+
+    return train_x, train_y, val_x, val_y, test_x, test_y
