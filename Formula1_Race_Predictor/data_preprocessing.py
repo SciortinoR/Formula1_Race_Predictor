@@ -11,7 +11,23 @@ def preprocess_df(df):
 
     # Iterate over columns removing/replacing NaN values
     for col in df.columns:
-        if col == 'driver_nationality' or col == 'constructor_nationality':
+
+        # 34 will be the NaN class for final position
+        if col == 'final_position':
+            df['final_position'].fillna(34, inplace=True)
+
+        # Replace all empty driver data with mean from that samples round & final position
+        elif col == 'driver_season_points':
+            df[col] = df[col].fillna(round(df.groupby(['final_position', 'round'])[col].transform('mean')))
+
+        elif col == 'driver_season_position':
+            df[col] = df[col].fillna(round(df.groupby(['final_position', 'round'])[col].transform('mean')))
+
+        elif col == 'driver_season_wins':
+            df[col] = df[col].fillna(round(df.groupby(['final_position', 'round'])[col].transform('mean')))
+
+        # Transform text into integer classes
+        elif col == 'driver_nationality' or col == 'constructor_nationality':
             df[col] = encoder.fit_transform(df[col])
 
         # Replace all empty constructor data with operations on driver data for that race
@@ -57,15 +73,19 @@ def preprocess_df(df):
             df['q2_time'].fillna(df['q1_time'], inplace=True)
             df['q3_time'].fillna(df['q2_time'], inplace=True)
 
-        elif col == 'final_position':
-            # 34 will be the NaN class for final position)
-            df['final_position'].fillna(34, inplace=True)
-
         else:
             pass
 
-    # Final cleanup & return normalized values
+    # Move final position column to right end
+    cols = list(df)
+    cols.insert(21, cols.pop(cols.index('final_position')))
+    df = df.loc[:, cols]
+    
+    # Final cleanup & save preprocessed df
     df.dropna(inplace=True)
+    # df.to_csv("../Datasets/Formed/preprocessed.csv")        # Commented out after initial save
+
+    # Return normalized values
     return scaler.fit_transform(df.values)
 
 def generate_dnn_data(values):
