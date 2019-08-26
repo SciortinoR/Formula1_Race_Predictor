@@ -4,13 +4,13 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
 
 def form_dnn(input_shape, num_classes):
-    
+   
     # Define a sequential neural net model
     dnn_model = Sequential()
 
     # First hidden layer passing inputs to
     dnn_model.add(Dense(128, input_shape=input_shape, activation='relu'))       # 128 neurons, using rectified linear activation function
-    dnn_model.add(Dropout(0.2))                                                 # Dropout layer in order to regularize or prevent overfitting
+    dnn_model.add(Dropout(0.2))                                                 # Dropout layer in order to regularize and prevent overfitting
     dnn_model.add(BatchNormalization())                                         # Provides a new normalized distribution after passing through the layer
 
     # Second hidden layer

@@ -82,16 +82,28 @@ def preprocess_df(df):
     cols = list(df)
     cols.insert(21, cols.pop(cols.index('final_position')))
     df = df.loc[:, cols]
+    
+    # Sort for RNN
+    df.sort_values(['year', 'round', 'final_position'], ascending=[True,True, True], inplace=True)
+    df.reset_index(drop=True, inplace=True)
+    
+    # Final cleanup
+    df.fillna(method='ffill', inplace=True)
+    df.dropna(inplace=True)
 
-    # Choose if want to predict all 34 position classes, or podium or points positions, etc (Comment out for all 34 positions)
+    # Choose if want to predict all 34 position classes, or podium or points positions, etc (Comment out to predict all 34 positions)
     df['final_position'] = np.where(df['final_position'] > 10, 11, df['final_position'])
     
-    # Final cleanup & save preprocessed df
-    df.dropna(inplace=True)
-    # df.to_csv("../Datasets/Formed/preprocessed.csv")        # Commented out after initial save
-
-    # Return normalized values
-    return scaler.fit_transform(df.values)
+    # Save preprocessed dataset (commented out after initial save)
+    #df.to_csv("../Datasets/Formed/preprocessed.csv")
+    
+    # Obtain balanced class weights for training
+    class_weights = class_weight.compute_class_weight('balanced',
+                                                     np.unique(df['final_position'].values),
+                                                     df['final_position'].values)
+  
+    # Return normalized values & class weigths
+    return scaler.fit_transform(df.values), class_weights
 
 def generate_dnn_data(values):
 
@@ -105,10 +117,17 @@ def generate_dnn_data(values):
     val_x, val_y = values[train_interval:val_interval, :-1], values[train_interval:val_interval, -1]
     test_x, test_y = values[val_interval:, :-1], values[val_interval:, -1]
 
-    
-    # Balance class weights
-    class_weights = class_weight.compute_class_weight('balanced',
-                                                     np.unique(train_y),
-                                                     train_y)
+    return train_x, train_y, val_x, val_y, test_x, test_y
 
-    return train_x, train_y, val_x, val_y, test_x, test_y, class_weights
+def generate_rnn_data(values):
+
+    # Use last 10% of data for RNN validation/test
+    train_interval = round(values.shape[0] * 0.9)
+    train_x, train_y = values[:train_interval, :-1], values[:train_interval, -1]
+    val_x, val_y = values[train_interval:, :-1], values[train_interval:, -1]
+
+    # Reshape to 3D input for RNN
+    train_x = train_x.reshape(train_x.shape[0], 1, train_x.shape[1])
+    val_x = val_x.reshape(val_x.shape[0], 1, val_x.shape[1])    
+
+    return train_x, train_y, val_x, val_y
