@@ -82,6 +82,9 @@ def preprocess_df(df):
     cols = list(df)
     cols.insert(21, cols.pop(cols.index('final_position')))
     df = df.loc[:, cols]
+
+    # Choose if want to predict all 34 position classes, or podium or points positions, etc (Comment out for all 34 positions)
+    df['final_position'] = np.where(df['final_position'] > 10, 11, df['final_position'])
     
     # Final cleanup & save preprocessed df
     df.dropna(inplace=True)

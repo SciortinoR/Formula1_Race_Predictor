@@ -3,7 +3,7 @@ import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
 
-def form_dnn(input_shape):
+def form_dnn(input_shape, num_classes):
     
     # Define a sequential neural net model
     dnn_model = Sequential()
@@ -24,7 +24,7 @@ def form_dnn(input_shape):
     dnn_model.add(BatchNormalization())
 
     # Final output layer
-    dnn_model.add(Dense(34, activation='softmax'))                              # 34 neurons for each final position class, softmax activation 
+    dnn_model.add(Dense(num_classes, activation='softmax'))                     # Neurons for each final position class, softmax activation 
                                                                                 # gives distributed probability/percentage for each class
 
     # Optimizer used in compilation/training
