@@ -75,8 +75,9 @@ def create_datasets():
     full_df = pd.merge(full_df, c_standings, how='left')
     full_df = pd.merge(full_df, quali, how='left')
 
-    # Add the rest of in-race data to full dataset 
     pre_race_df = full_df
+    
+    # Add the rest of in-race data to full dataset 
     full_df = pd.merge(full_df, lap_times, how='left')
     full_df = pd.merge(full_df, pit_stops, how='left')
 
