@@ -4,6 +4,7 @@ import numpy as np
 
 from datetime import datetime
 from sklearn import preprocessing
+from sklearn.utils import class_weight
 
 encoder = preprocessing.LabelEncoder()
 scaler = preprocessing.MinMaxScaler(feature_range=(0,1))
@@ -101,4 +102,10 @@ def generate_dnn_data(values):
     val_x, val_y = values[train_interval:val_interval, :-1], values[train_interval:val_interval, -1]
     test_x, test_y = values[val_interval:, :-1], values[val_interval:, -1]
 
-    return train_x, train_y, val_x, val_y, test_x, test_y
+    
+    # Balance class weights
+    class_weights = class_weight.compute_class_weight('balanced',
+                                                     np.unique(train_y),
+                                                     train_y)
+
+    return train_x, train_y, val_x, val_y, test_x, test_y, class_weights
